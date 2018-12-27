@@ -37,8 +37,8 @@ public class TracingDriver implements Driver {
   private static final String TRACE_WITH_ACTIVE_SPAN_ONLY = "traceWithActiveSpanOnly";
 
   private static final String WITH_ACTIVE_SPAN_ONLY = TRACE_WITH_ACTIVE_SPAN_ONLY + "=true";
-  public static final String IGNORE_FOR_TRACING_REGEX = "ignoreForTracing=\"((?:\\\\\"|[^\"])*)\"[;]*";
-
+  public static final String IGNORE_FOR_TRACING_REGEX = "ignoreForTracing=\"((?:\\\\\"|[^\"])*)\"[;]*";  
+  
   static {
     try {
       DriverManager.registerDriver(INSTANCE);
@@ -72,7 +72,7 @@ public class TracingDriver implements Driver {
 
   @Override
   public boolean acceptsURL(String url) throws SQLException {
-    return url != null && url.startsWith("jdbc:tracing:");
+    return url != null && url.startsWith(getUrlPrefix());
   }
 
   @Override
@@ -103,6 +103,10 @@ public class TracingDriver implements Driver {
     return null;
   }
 
+  protected String getUrlPrefix() {
+    return "jdbc:tracing:";
+  }
+  
   private Driver findDriver(String realUrl) throws SQLException {
 
     Driver wrappedDriver = null;
@@ -132,7 +136,7 @@ public class TracingDriver implements Driver {
   }
 
   private String extractRealUrl(String url) {
-    String extracted = url.startsWith("jdbc:tracing:") ? url.replace("tracing:", "") : url;
+    String extracted = url.startsWith(getUrlPrefix()) ? url.replace(getUrlPrefix(), "jdbc:") : url;
     return extracted.replaceAll(TRACE_WITH_ACTIVE_SPAN_ONLY + "=(true|false)[;]*", "")
         .replaceAll(IGNORE_FOR_TRACING_REGEX, "")
         .replaceAll("\\?$", "");
